@@ -130,24 +130,23 @@ def main(page: ft.Page):
     # ---------------- VOTE BLOCK ----------------
     def build_vote_block(title, links):
         return ft.Container(
-        padding=10,
-        bgcolor="#111827",
-        border_radius=10,
-        content=ft.Column([
-            ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
-
-            *[
-                ft.Row([
-                    ft.Text(name, expand=1, color="#ffffff"),
-                    ft.TextButton(
-                        "VOTE",
-                        on_click=lambda e, u=url: page.launch_url(u)
-                    )
-                ])
-                for name, url in links
-            ]
-        ])
-    )
+            padding=10,
+            bgcolor="#111827",
+            border_radius=10,
+            content=ft.Column([
+                ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
+                *[
+                    ft.Row([
+                        ft.Text(name, expand=1, color="#ffffff"),
+                        ft.TextButton(
+                            "VOTE",
+                            on_click=lambda e, u=url: page.launch_url(u)
+                        )
+                    ])
+                    for name, url in links
+                ]
+            ])
+        )
 
     vote_asa = build_vote_block("🔥 ASA SERVER VOTES", VOTE_ASA)
     vote_de = build_vote_block("🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE)
