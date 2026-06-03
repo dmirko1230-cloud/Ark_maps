@@ -1,23 +1,25 @@
 import flet as ft
 import requests
 
+
 # -----------------------------
 # SERVER LISTE
 # -----------------------------
 SERVER_LISTE = {
-    "THE ISLAND":    {"id": "36953667", "url": "https://asamap.axi92.at/map/c6c6f105-06f1-41de-9f5e-9f38afe18502"},
-    "EXTINCTION":    {"id": "36959230", "url": "https://asamap.axi92.at/map/558c1013-0989-40b7-86b4-bbd2b6c529a8"},
-    "SE":            {"id": "36959212", "url": "https://asamap.axi92.at/map/a2865e94-22f4-47a7-bc62-daefe2b5c2e8"},
-    "TESTBUDE":      {"id": "39135057", "url": None},
-    "VALGUERO":      {"id": "38696507", "url": "https://asamap.axi92.at/map/fde35796-7865-48f2-a680-8680525a1962"},
-    "SVARTALFHEIM":  {"id": "36953585", "url": "https://asamap.axi92.at/map/2d6e46e1-267c-4229-89c1-8be4fdbeb9f6"},
-    "CENTER":        {"id": "36959198", "url": "https://asamap.axi92.at/map/cd7a8226-4396-48ad-93f6-6af18d9eb627"},
-    "ABERRATION":    {"id": "36959246", "url": "https://asamap.axi92.at/map/14dc4038-1df6-4055-a65e-66ced672b366"},
-    "ASTRAEOS":      {"id": "38696478", "url": "https://asamap.axi92.at/map/543e8878-779c-4694-84b1-cc5fbfcdec21"},
-    "RAGNARÖK":      {"id": "38696502", "url": "https://asamap.axi92.at/map/9c404416-0263-42c7-a067-a14723f502bc"},
-    "LOST CITY":     {"id": "36953589", "url": "https://asamap.axi92.at/map/80196515-b882-4819-926c-dc381adcb0dc"},
-    "LOST COLONY":   {"id": "36959287", "url": "https://asamap.axi92.at/map/f7df5ef9-212b-453d-bc46-e8357a566a36"}
+    "THE ISLAND": {"id": "36953667", "url": "https://asamap.axi92.at/map/c6c6f105-06f1-41de-9f5e-9f38afe18502"},
+    "EXTINCTION": {"id": "36959230", "url": "https://asamap.axi92.at/map/558c1013-0989-40b7-86b4-bbd2b6c529a8"},
+    "SE": {"id": "36959212", "url": "https://asamap.axi92.at/map/a2865e94-22f4-47a7-bc62-daefe2b5c2e8"},
+    "TESTBUDE": {"id": "39135057", "url": None},
+    "VALGUERO": {"id": "38696507", "url": "https://asamap.axi92.at/map/fde35796-7865-48f2-a680-8680525a1962"},
+    "SVARTALFHEIM": {"id": "36953585", "url": "https://asamap.axi92.at/map/2d6e46e1-267c-4229-89c1-8be4fdbeb9f6"},
+    "CENTER": {"id": "36959198", "url": "https://asamap.axi92.at/map/cd7a8226-4396-48ad-93f6-6af18d9eb627"},
+    "ABERRATION": {"id": "36959246", "url": "https://asamap.axi92.at/map/14dc4038-1df6-4055-a65e-66ced672b366"},
+    "ASTRAEOS": {"id": "38696478", "url": "https://asamap.axi92.at/map/543e8878-779c-4694-84b1-cc5fbfcdec21"},
+    "RAGNARÖK": {"id": "38696502", "url": "https://asamap.axi92.at/map/9c404416-0263-42c7-a067-a14723f502bc"},
+    "LOST CITY": {"id": "36953589", "url": "https://asamap.axi92.at/map/80196515-b882-4819-926c-dc381adcb0dc"},
+    "LOST COLONY": {"id": "36959287", "url": "https://asamap.axi92.at/map/f7df5ef9-212b-453d-bc46-e8357a566a36"}
 }
+
 
 # -----------------------------
 # VOTE LINKS
@@ -41,6 +43,7 @@ VOTE_DE = [
     ("Ragnarok (DE)", "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/")
 ]
 
+
 # -----------------------------
 # API
 # -----------------------------
@@ -55,6 +58,35 @@ def hole_spieler_anzahl(server_id):
 
 
 # -----------------------------
+# VOTE UI BLOCK
+# -----------------------------
+def build_vote_block(page, title, links):
+    return ft.Container(
+        padding=10,
+        bgcolor="#111827",
+        border_radius=10,
+        content=ft.Column(
+            controls=[
+                ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
+
+                *[
+                    ft.Row(
+                        controls=[
+                            ft.Text(name, expand=1, color="#ffffff"),
+                            ft.TextButton(
+                                text="VOTE",
+                                on_click=lambda e, u=url: page.launch_url(u)
+                            )
+                        ]
+                    )
+                    for name, url in links
+                ]
+            ]
+        )
+    )
+
+
+# -----------------------------
 # MAIN APP
 # -----------------------------
 def main(page: ft.Page):
@@ -64,20 +96,16 @@ def main(page: ft.Page):
     page.scroll = ft.ScrollMode.AUTO
     page.padding = ft.padding.only(bottom=90, left=10, right=10, top=10)
 
-    # ---------------- TITLE ----------------
     titel = ft.Text(
         "🦖 RUHRPOTT SURVIVOR 🦖",
         size=22,
         weight=ft.FontWeight.BOLD,
         color="#00ffcc",
-        no_wrap=True,
-        text_align=ft.TextAlign.CENTER
+        no_wrap=True
     )
 
-    # ---------------- STATUS ----------------
     status_bereich = ft.Column(spacing=5)
 
-    # ---------------- UPDATE ----------------
     def aktualisiere_status(e):
         scan_button.disabled = True
         scan_button.text = "Aktualisiere..."
@@ -96,7 +124,7 @@ def main(page: ft.Page):
 
             map_btn = (
                 ft.TextButton(
-                    "MAP",
+                    text="MAP",
                     on_click=lambda e, u=info["url"]: page.launch_url(u)
                 )
                 if info["url"]
@@ -104,11 +132,13 @@ def main(page: ft.Page):
             )
 
             status_bereich.controls.append(
-                ft.Row([
-                    ft.Text(f"■ {name}:", width=150, color="#ffaa00", weight=ft.FontWeight.BOLD),
-                    ft.Text(f"{anzahl} Spieler", width=100, color=farbe),
-                    map_btn
-                ])
+                ft.Row(
+                    controls=[
+                        ft.Text(f"■ {name}:", width=150, color="#ffaa00", weight=ft.FontWeight.BOLD),
+                        ft.Text(f"{anzahl} Spieler", width=100, color=farbe),
+                        map_btn
+                    ]
+                )
             )
 
             status_bereich.controls.append(ft.Divider(color="#22333b"))
@@ -117,7 +147,6 @@ def main(page: ft.Page):
         scan_button.text = "CLUSTER AKTUALISIEREN"
         page.update()
 
-    # ---------------- BUTTON ----------------
     scan_button = ft.FilledButton(
         text="CLUSTER AKTUALISIEREN",
         bgcolor="#00ffcc",
@@ -127,31 +156,9 @@ def main(page: ft.Page):
         on_click=aktualisiere_status
     )
 
-    # ---------------- VOTE BLOCK ----------------
-    def build_vote_block(title, links):
-        return ft.Container(
-            padding=10,
-            bgcolor="#111827",
-            border_radius=10,
-            content=ft.Column([
-                ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
-                *[
-                    ft.Row([
-                        ft.Text(name, expand=1, color="#ffffff"),
-                        ft.TextButton(
-                            "VOTE",
-                            on_click=lambda e, u=url: page.launch_url(u)
-                        )
-                    ])
-                    for name, url in links
-                ]
-            ])
-        )
+    vote_asa = build_vote_block(page, "🔥 ASA SERVER VOTES", VOTE_ASA)
+    vote_de = build_vote_block(page, "🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE)
 
-    vote_asa = build_vote_block("🔥 ASA SERVER VOTES", VOTE_ASA)
-    vote_de = build_vote_block("🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE)
-
-    # ---------------- PAGE ----------------
     page.add(
         titel,
         ft.Container(height=10),
