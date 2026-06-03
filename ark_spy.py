@@ -37,15 +37,13 @@ def hole_spieler_anzahl(server_id):
 
 def main(page: ft.Page):
     page.title = "Ruhrpott Survivor - Radar"
-    page.window_width = 500
-    page.window_height = 850
     page.bgcolor = "#0d1117"
     page.scroll = ft.ScrollMode.AUTO
 
     titel = ft.Text(
         "🦖 CLUSTER LIVE-RADAR 🦖",
         size=24,
-        weight="bold",
+        weight=ft.FontWeight.BOLD,
         color="#00ffcc",
         text_align=ft.TextAlign.CENTER
     )
@@ -63,13 +61,11 @@ def main(page: ft.Page):
 
             anzahl = hole_spieler_anzahl(info["id"])
 
-            # Sichere Farbwahl
             if isinstance(anzahl, int):
                 spieler_farbe = "#00ff66" if anzahl > 0 else "#888888"
             else:
                 spieler_farbe = "#ff5555"
 
-            # MAP-Link
             if info["url"]:
                 map_klick_bereich = ft.TextButton(
                     text="MAP",
@@ -88,7 +84,7 @@ def main(page: ft.Page):
                         ft.Text(
                             f"■ {name}:",
                             width=160,
-                            weight="bold",
+                            weight=ft.FontWeight.BOLD,
                             color="#ffaa00"
                         ),
                         ft.Text(
@@ -109,18 +105,17 @@ def main(page: ft.Page):
         scan_button.text = "CLUSTER AKTUALISIEREN"
         page.update()
 
+    test_button = ft.TextButton(
+        text="TEST LINK",
+        on_click=lambda e: page.launch_url("https://www.google.de")
+    )
+
     scan_button = ft.FilledButton(
         text="CLUSTER AKTUALISIEREN",
         bgcolor="#00ffcc",
         width=450,
         height=60,
         on_click=aktualisiere_status
-    )
-
-    # Test-Button für Android
-    test_button = ft.TextButton(
-        text="TEST LINK",
-        on_click=lambda e: page.launch_url("https://www.google.de")
     )
 
     page.add(
@@ -134,4 +129,5 @@ def main(page: ft.Page):
     )
 
 
-ft.run(main)
+if __name__ == "__main__":
+    ft.app(target=main)
