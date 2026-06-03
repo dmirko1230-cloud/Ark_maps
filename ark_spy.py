@@ -105,11 +105,6 @@ def main(page: ft.Page):
         scan_button.text = "CLUSTER AKTUALISIEREN"
         page.update()
 
-    test_button = ft.TextButton(
-        text="TEST LINK",
-        on_click=lambda e: page.launch_url("https://www.google.de")
-    )
-
     scan_button = ft.FilledButton(
         text="CLUSTER AKTUALISIEREN",
         bgcolor="#00ffcc",
@@ -120,8 +115,6 @@ def main(page: ft.Page):
 
     page.add(
         titel,
-        ft.Container(height=10),
-        test_button,
         ft.Container(height=10),
         scan_button,
         ft.Container(height=20),
