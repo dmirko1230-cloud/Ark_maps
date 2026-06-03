@@ -29,8 +29,6 @@ def hole_spieler_anzahl(server_id):
 
 def main(page: ft.Page):
     page.title = "Ruhrpott Survivor - Radar"
-    page.window_width = 500
-    page.window_height = 850
     page.bgcolor = "#0d1117"
     page.scroll = ft.ScrollMode.AUTO
 
@@ -39,7 +37,7 @@ def main(page: ft.Page):
 
     def aktualisiere_status(e):
         scan_button.disabled = True
-        scan_button.content.value = "Aktualisiere..."
+        scan_button.text = "Aktualisiere..."
         page.update()
         
         status_bereich.controls.clear()
@@ -47,15 +45,17 @@ def main(page: ft.Page):
             anzahl = hole_spieler_anzahl(info["id"])
             
             if info["url"]:
-                # Container mit ink=True für Android-Klick-Feedback
-                map_klick_bereich = ft.Container(
-                    content=ft.Text("MAP", color="#00ffcc", weight="bold", size=14),
+                # Hier nutzen wir jetzt einen ElevatedButton statt Container
+                # Das ist unter Android 100% zuverlässig klickbar
+                map_klick_bereich = ft.ElevatedButton(
+                    text="MAP",
                     on_click=lambda e, u=info["url"]: page.launch_url(u),
-                    padding=12,
-                    bgcolor="#1a202c",
-                    border_radius=8,
-                    ink=True, 
-                    alignment=ft.alignment.center
+                    style=ft.ButtonStyle(
+                        bgcolor="#1a202c",
+                        color="#00ffcc",
+                        shape=ft.RoundedRectangleBorder(radius=5)
+                    ),
+                    height=40
                 )
             else:
                 map_klick_bereich = ft.Text("-", color="#555555", width=40, text_align=ft.TextAlign.CENTER)
@@ -70,12 +70,13 @@ def main(page: ft.Page):
             status_bereich.controls.append(ft.Divider(color="#22333b"))
             
         scan_button.disabled = False
-        scan_button.content.value = "CLUSTER AKTUALISIEREN"
+        scan_button.text = "CLUSTER AKTUALISIEREN"
         page.update()
 
-    scan_button = ft.FilledButton(
-        content=ft.Text("CLUSTER AKTUALISIEREN", color="#0d1117", weight="bold"),
+    scan_button = ft.ElevatedButton(
+        text="CLUSTER AKTUALISIEREN",
         bgcolor="#00ffcc",
+        color="#0d1117",
         width=450, height=60,
         on_click=aktualisiere_status
     )
