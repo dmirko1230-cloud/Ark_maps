@@ -23,22 +23,22 @@ SERVER_LISTE = {
 # VOTE LINKS
 # -----------------------------
 VOTE_ASA = [
-    "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-se-crossark-clustert5h5x25-50",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-center-crossark-clustert5h5x25-51",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-ragnarok-crossark-clustert5h5x25-52",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-aberration-crossark-clustert5h5x25-57",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-extinction-crossark-clustert5h5x25-112",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-astraeos-crossark-clustert5h5x25-113",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-svartalfheim-crossark-clustert5h5x25-132",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-valguero-crossark-clustert5h5x25-170",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-lostcolony-crossark-clustert5h5x25-193",
-    "https://asa-server.de/server/ruhrpott-survivor-pve-lostcitycrossark-clustert5h5x25-194"
+    ("Island", "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49"),
+    ("SE", "https://asa-server.de/server/ruhrpott-survivor-pve-se-crossark-clustert5h5x25-50"),
+    ("Center", "https://asa-server.de/server/ruhrpott-survivor-pve-center-crossark-clustert5h5x25-51"),
+    ("Ragnarok", "https://asa-server.de/server/ruhrpott-survivor-pve-ragnarok-crossark-clustert5h5x25-52"),
+    ("Aberration", "https://asa-server.de/server/ruhrpott-survivor-pve-aberration-crossark-clustert5h5x25-57"),
+    ("Extinction", "https://asa-server.de/server/ruhrpott-survivor-pve-extinction-crossark-clustert5h5x25-112"),
+    ("Astraeos", "https://asa-server.de/server/ruhrpott-survivor-pve-astraeos-crossark-clustert5h5x25-113"),
+    ("Svartalfheim", "https://asa-server.de/server/ruhrpott-survivor-pve-svartalfheim-crossark-clustert5h5x25-132"),
+    ("Valguero", "https://asa-server.de/server/ruhrpott-survivor-pve-valguero-crossark-clustert5h5x25-170"),
+    ("Lost Colony", "https://asa-server.de/server/ruhrpott-survivor-pve-lostcolony-crossark-clustert5h5x25-193"),
+    ("Lost City", "https://asa-server.de/server/ruhrpott-survivor-pve-lostcitycrossark-clustert5h5x25-194"),
 ]
 
 VOTE_DE = [
-    "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-island-crossark-cluster-t5h5x2-5.46322/",
-    "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/"
+    ("Island (DE)", "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-island-crossark-cluster-t5h5x2-5.46322/"),
+    ("Ragnarok (DE)", "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/")
 ]
 
 # -----------------------------
@@ -66,8 +66,8 @@ def main(page: ft.Page):
 
     # ---------------- TITLE ----------------
     titel = ft.Text(
-        "🦖 RUHRPOTT SURVIVOR PVE RADAR",
-        size=20,
+        "🦖 RUHRPOTT SURVIVOR 🦖",
+        size=22,
         weight=ft.FontWeight.BOLD,
         color="#00ffcc",
         no_wrap=True,
@@ -129,21 +129,25 @@ def main(page: ft.Page):
 
     # ---------------- VOTE BLOCK ----------------
     def build_vote_block(title, links):
-        return ft.Container(
-            padding=10,
-            bgcolor="#111827",
-            border_radius=10,
-            content=ft.Column([
-                ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
-                *[
+    return ft.Container(
+        padding=10,
+        bgcolor="#111827",
+        border_radius=10,
+        content=ft.Column([
+            ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
+
+            *[
+                ft.Row([
+                    ft.Text(name, expand=1, color="#ffffff"),
                     ft.TextButton(
-                        text=f"Vote {i+1}",
+                        "VOTE",
                         on_click=lambda e, u=url: page.launch_url(u)
                     )
-                    for i, url in enumerate(links)
-                ]
-            ])
-        )
+                ])
+                for name, url in links
+            ]
+        ])
+    )
 
     vote_asa = build_vote_block("🔥 ASA SERVER VOTES", VOTE_ASA)
     vote_de = build_vote_block("🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE)
