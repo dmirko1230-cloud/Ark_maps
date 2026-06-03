@@ -129,7 +129,7 @@ def main(page: ft.Page):
 
     # ---------------- VOTE BLOCK ----------------
     def build_vote_block(title, links):
-    return ft.Container(
+        return ft.Container(
         padding=10,
         bgcolor="#111827",
         border_radius=10,
