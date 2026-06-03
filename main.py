@@ -45,17 +45,17 @@ def main(page: ft.Page):
             anzahl = hole_spieler_anzahl(info["id"])
             
             if info["url"]:
-                # Hier nutzen wir jetzt einen ElevatedButton statt Container
-                # Das ist unter Android 100% zuverlässig klickbar
-                map_klick_bereich = ft.ElevatedButton(
-                    text="MAP",
-                    on_click=lambda e, u=info["url"]: page.launch_url(u),
-                    style=ft.ButtonStyle(
+                # Container als "Hülle" für das Design
+                # GestureDetector als "Empfänger" für den Klick
+                map_klick_bereich = ft.GestureDetector(
+                    on_tap=lambda e, u=info["url"]: page.launch_url(u),
+                    content=ft.Container(
+                        content=ft.Text("MAP", color="#00ffcc", weight="bold", size=14),
+                        padding=10,
                         bgcolor="#1a202c",
-                        color="#00ffcc",
-                        shape=ft.RoundedRectangleBorder(radius=5)
-                    ),
-                    height=40
+                        border_radius=8,
+                        alignment=ft.alignment.center
+                    )
                 )
             else:
                 map_klick_bereich = ft.Text("-", color="#555555", width=40, text_align=ft.TextAlign.CENTER)
