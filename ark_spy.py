@@ -120,7 +120,7 @@ def main(page: ft.Page):
     # Test-Button für Android
     test_button = ft.TextButton(
         text="TEST LINK",
-        on_click=lambda e: page.launch_url("https://google.de")
+        on_click=lambda e: page.launch_url("https://www.google.de")
     )
 
     page.add(
