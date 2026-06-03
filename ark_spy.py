@@ -47,21 +47,23 @@ def main(page: ft.Page):
             anzahl = hole_spieler_anzahl(info["id"])
             
             if info["url"]:
-                # Hier habe ich webbrowser.open durch page.launch_url ersetzt
+                # Container mit ink=True für Android-Klick-Feedback
                 map_klick_bereich = ft.Container(
-                    content=ft.Text("MAP", color="#00ffcc", weight="bold"),
+                    content=ft.Text("MAP", color="#00ffcc", weight="bold", size=14),
                     on_click=lambda e, u=info["url"]: page.launch_url(u),
-                    padding=5,
+                    padding=12,
                     bgcolor="#1a202c",
-                    border_radius=5
+                    border_radius=8,
+                    ink=True, 
+                    alignment=ft.alignment.center
                 )
             else:
-                map_klick_bereich = ft.Text("-", color="#555555")
+                map_klick_bereich = ft.Text("-", color="#555555", width=40, text_align=ft.TextAlign.CENTER)
 
             status_bereich.controls.append(
                 ft.Row([
-                    ft.Text(f"■ {name}:", width=160, weight="bold", color="#ffaa00"),
-                    ft.Text(f"{anzahl} Spieler", width=100, color="#00ff66" if anzahl > 0 else "#888888"),
+                    ft.Text(f"■ {name}:", width=150, weight="bold", color="#ffaa00"),
+                    ft.Text(f"{anzahl} Spieler", width=90, color="#00ff66" if anzahl > 0 else "#888888"),
                     map_klick_bereich
                 ], alignment=ft.MainAxisAlignment.START)
             )
