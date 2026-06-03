@@ -1,9 +1,9 @@
 import flet as ft
 import requests
 
-# =========================
-# SERVER + MAPS
-# =========================
+# -----------------------------
+# SERVER LISTE
+# -----------------------------
 SERVER_LISTE = {
     "THE ISLAND":    {"id": "36953667", "url": "https://asamap.axi92.at/map/c6c6f105-06f1-41de-9f5e-9f38afe18502"},
     "EXTINCTION":    {"id": "36959230", "url": "https://asamap.axi92.at/map/558c1013-0989-40b7-86b4-bbd2b6c529a8"},
@@ -19,65 +19,65 @@ SERVER_LISTE = {
     "LOST COLONY":   {"id": "36959287", "url": "https://asamap.axi92.at/map/f7df5ef9-212b-453d-bc46-e8357a566a36"}
 }
 
-# =========================
-# ASA VOTES (11x)
-# =========================
-VOTE_ASA = {
-    "THE ISLAND": "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49",
-    "SE": "https://asa-server.de/server/ruhrpott-survivor-pve-se-crossark-clustert5h5x25-50",
-    "CENTER": "https://asa-server.de/server/ruhrpott-survivor-pve-center-crossark-clustert5h5x25-51",
-    "RAGNARÖK": "https://asa-server.de/server/ruhrpott-survivor-pve-ragnarok-crossark-clustert5h5x25-52",
-    "ABERRATION": "https://asa-server.de/server/ruhrpott-survivor-pve-aberration-crossark-clustert5h5x25-57",
-    "EXTINCTION": "https://asa-server.de/server/ruhrpott-survivor-pve-extinction-crossark-clustert5h5x25-112",
-    "ASTRAEOS": "https://asa-server.de/server/ruhrpott-survivor-pve-astraeos-crossark-clustert5h5x25-113",
-    "SVARTALFHEIM": "https://asa-server.de/server/ruhrpott-survivor-pve-svartalfheim-crossark-clustert5h5x25-132",
-    "VALGUERO": "https://asa-server.de/server/ruhrpott-survivor-pve-valguero-crossark-clustert5h5x25-170",
-    "LOST COLONY": "https://asa-server.de/server/ruhrpott-survivor-pve-lostcolony-crossark-clustert5h5x25-193",
-    "LOST CITY": "https://asa-server.de/server/ruhrpott-survivor-pve-lostcitycrossark-clustert5h5x25-194"
-}
+# -----------------------------
+# VOTE LINKS
+# -----------------------------
+VOTE_ASA = [
+    "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-se-crossark-clustert5h5x25-50",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-center-crossark-clustert5h5x25-51",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-ragnarok-crossark-clustert5h5x25-52",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-aberration-crossark-clustert5h5x25-57",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-extinction-crossark-clustert5h5x25-112",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-astraeos-crossark-clustert5h5x25-113",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-svartalfheim-crossark-clustert5h5x25-132",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-valguero-crossark-clustert5h5x25-170",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-lostcolony-crossark-clustert5h5x25-193",
+    "https://asa-server.de/server/ruhrpott-survivor-pve-lostcitycrossark-clustert5h5x25-194"
+]
 
-# =========================
-# DEUTSCHE ARK SERVER VOTES
-# =========================
-VOTE_DE = {
-    "THE ISLAND": "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-island-crossark-cluster-t5h5x2-5.46322/",
-    "RAGNARÖK": "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/"
-}
+VOTE_DE = [
+    "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-island-crossark-cluster-t5h5x2-5.46322/",
+    "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/"
+]
 
-
-# =========================
-# PLAYER COUNT
-# =========================
+# -----------------------------
+# API
+# -----------------------------
 def hole_spieler_anzahl(server_id):
     try:
         r = requests.get(f"https://api.battlemetrics.com/servers/{server_id}", timeout=5)
         if r.status_code == 200:
             return r.json()["data"]["attributes"]["players"]
-        return "N/A"
     except:
-        return "Fehler"
+        pass
+    return "Fehler"
 
 
-# =========================
-# APP
-# =========================
+# -----------------------------
+# MAIN APP
+# -----------------------------
 def main(page: ft.Page):
+
     page.title = "Ruhrpott Survivor PVE Radar"
     page.bgcolor = "#0d1117"
     page.scroll = ft.ScrollMode.AUTO
+    page.padding = ft.padding.only(bottom=90, left=10, right=10, top=10)
 
+    # ---------------- TITLE ----------------
     titel = ft.Text(
-        "🦖 RUHRPOTT SURVIVOR PVE RADAR 🦖",
-    size=24,
-    weight=ft.FontWeight.BOLD,
-    color="#00ffcc"
+        "🦖 RUHRPOTT SURVIVOR PVE RADAR",
+        size=20,
+        weight=ft.FontWeight.BOLD,
+        color="#00ffcc",
+        no_wrap=True,
+        text_align=ft.TextAlign.CENTER
     )
 
+    # ---------------- STATUS ----------------
     status_bereich = ft.Column(spacing=5)
 
-    # =========================
-    # UPDATE
-    # =========================
+    # ---------------- UPDATE ----------------
     def aktualisiere_status(e):
         scan_button.disabled = True
         scan_button.text = "Aktualisiere..."
@@ -86,85 +86,81 @@ def main(page: ft.Page):
         status_bereich.controls.clear()
 
         for name, info in SERVER_LISTE.items():
+
             anzahl = hole_spieler_anzahl(info["id"])
 
             if isinstance(anzahl, int):
-                color = "#00ff66" if anzahl > 0 else "#888888"
+                farbe = "#00ff66" if anzahl > 0 else "#888888"
             else:
-                color = "#ff5555"
+                farbe = "#ff5555"
 
             map_btn = (
-                ft.TextButton("MAP", on_click=lambda e, u=info["url"]: page.launch_url(u))
+                ft.TextButton(
+                    "MAP",
+                    on_click=lambda e, u=info["url"]: page.launch_url(u)
+                )
                 if info["url"]
-                else ft.Text("-", color="#555")
+                else ft.Text("-", color="#555555")
             )
 
             status_bereich.controls.append(
                 ft.Row([
-                    ft.Text(name, width=160, color="#ffaa00"),
-                    ft.Text(f"{anzahl}", width=80, color=color),
+                    ft.Text(f"■ {name}:", width=150, color="#ffaa00", weight=ft.FontWeight.BOLD),
+                    ft.Text(f"{anzahl} Spieler", width=100, color=farbe),
                     map_btn
                 ])
             )
+
+            status_bereich.controls.append(ft.Divider(color="#22333b"))
 
         scan_button.disabled = False
         scan_button.text = "CLUSTER AKTUALISIEREN"
         page.update()
 
-
-    # =========================
-    # VOTING UI BUILDER
-    # =========================
-    def build_vote_section(title, data):
-        section = ft.Column(spacing=5)
-        section.controls.append(
-            ft.Text(title, size=18, color="#00ffcc", weight=ft.FontWeight.BOLD)
-        )
-
-        for name, url in data.items():
-            section.controls.append(
-                ft.Row([
-                    ft.Text(name, width=160, color="#ffffff"),
-                    ft.TextButton("VOTE", on_click=lambda e, u=url: page.launch_url(u))
-                ])
-            )
-
-        return section
-
-
-    # =========================
-    # BUTTON
-    # =========================
+    # ---------------- BUTTON ----------------
     scan_button = ft.FilledButton(
         text="CLUSTER AKTUALISIEREN",
         bgcolor="#00ffcc",
+        color="#0d1117",
         width=450,
-        height=60,
+        height=55,
         on_click=aktualisiere_status
     )
 
+    # ---------------- VOTE BLOCK ----------------
+    def build_vote_block(title, links):
+        return ft.Container(
+            padding=10,
+            bgcolor="#111827",
+            border_radius=10,
+            content=ft.Column([
+                ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
+                *[
+                    ft.TextButton(
+                        text=f"Vote {i+1}",
+                        on_click=lambda e, u=url: page.launch_url(u)
+                    )
+                    for i, url in enumerate(links)
+                ]
+            ])
+        )
 
-    # =========================
-    # BUILD VOTE SECTIONS
-    # =========================
-    vote_asa_section = build_vote_section("🏆 ASA SERVER VOTING", VOTE_ASA)
-    vote_de_section = build_vote_section("🇩🇪 DEUTSCHE ARK SERVER VOTING", VOTE_DE)
+    vote_asa = build_vote_block("🔥 ASA SERVER VOTES", VOTE_ASA)
+    vote_de = build_vote_block("🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE)
 
-
-    # =========================
-    # UI
-    # =========================
+    # ---------------- PAGE ----------------
     page.add(
         titel,
         ft.Container(height=10),
         scan_button,
-        ft.Container(height=20),
+        ft.Container(height=15),
         status_bereich,
-        ft.Container(height=30),
-        vote_asa_section,
         ft.Container(height=20),
-        vote_de_section
+        vote_asa,
+        ft.Container(height=10),
+        vote_de
     )
 
 
-ft.app(target=main)
+if __name__ == "__main__":
+    ft.app(target=main)
