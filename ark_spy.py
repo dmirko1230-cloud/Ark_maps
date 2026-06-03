@@ -17,70 +17,121 @@ SERVER_LISTE = {
     "LOST COLONY":   {"id": "36959287", "url": "https://asamap.axi92.at/map/f7df5ef9-212b-453d-bc46-e8357a566a36"}
 }
 
+
 def hole_spieler_anzahl(server_id):
     url = f"https://api.battlemetrics.com/servers/{server_id}"
+
     try:
         response = requests.get(url, timeout=5)
+
         if response.status_code == 200:
-            return response.json()["data"]["attributes"]["players"]
+            daten = response.json()
+            return daten["data"]["attributes"]["players"]
+
         return "N/A"
-    except:
+
+    except Exception as e:
+        print(f"Fehler bei Server {server_id}: {e}")
         return "Fehler"
+
 
 def main(page: ft.Page):
     page.title = "Ruhrpott Survivor - Radar"
+    page.window_width = 500
+    page.window_height = 850
     page.bgcolor = "#0d1117"
     page.scroll = ft.ScrollMode.AUTO
 
-    titel = ft.Text("🦖 CLUSTER LIVE-RADAR 🦖", size=24, weight="bold", color="#00ffcc", text_align="center")
-    status_bereich = ft.Column(spacing=10)
+    titel = ft.Text(
+        "🦖 CLUSTER LIVE-RADAR 🦖",
+        size=24,
+        weight="bold",
+        color="#00ffcc",
+        text_align=ft.TextAlign.CENTER
+    )
+
+    status_bereich = ft.Column(spacing=5)
 
     def aktualisiere_status(e):
         scan_button.disabled = True
         scan_button.text = "Aktualisiere..."
         page.update()
-        
+
         status_bereich.controls.clear()
+
         for name, info in SERVER_LISTE.items():
+
             anzahl = hole_spieler_anzahl(info["id"])
-            
+
+            # Sichere Farbwahl
+            if isinstance(anzahl, int):
+                spieler_farbe = "#00ff66" if anzahl > 0 else "#888888"
+            else:
+                spieler_farbe = "#ff5555"
+
+            # MAP-Link
             if info["url"]:
-                # Container als "Hülle" für das Design
-                # GestureDetector als "Empfänger" für den Klick
-                map_klick_bereich = ft.GestureDetector(
-                    on_tap=lambda e, u=info["url"]: page.launch_url(u),
-                    content=ft.Container(
-                        content=ft.Text("MAP", color="#00ffcc", weight="bold", size=14),
-                        padding=10,
-                        bgcolor="#1a202c",
-                        border_radius=8,
-                        alignment=ft.alignment.center
-                    )
+                map_klick_bereich = ft.TextButton(
+                    text="MAP",
+                    on_click=lambda e, u=info["url"]: page.launch_url(u)
                 )
             else:
-                map_klick_bereich = ft.Text("-", color="#555555", width=40, text_align=ft.TextAlign.CENTER)
+                map_klick_bereich = ft.Text(
+                    "-",
+                    color="#555555",
+                    width=50
+                )
 
             status_bereich.controls.append(
-                ft.Row([
-                    ft.Text(f"■ {name}:", width=150, weight="bold", color="#ffaa00"),
-                    ft.Text(f"{anzahl} Spieler", width=90, color="#00ff66" if anzahl > 0 else "#888888"),
-                    map_klick_bereich
-                ], alignment=ft.MainAxisAlignment.START)
+                ft.Row(
+                    [
+                        ft.Text(
+                            f"■ {name}:",
+                            width=160,
+                            weight="bold",
+                            color="#ffaa00"
+                        ),
+                        ft.Text(
+                            f"{anzahl} Spieler",
+                            width=100,
+                            color=spieler_farbe
+                        ),
+                        map_klick_bereich
+                    ]
+                )
             )
-            status_bereich.controls.append(ft.Divider(color="#22333b"))
-            
+
+            status_bereich.controls.append(
+                ft.Divider(color="#22333b")
+            )
+
         scan_button.disabled = False
         scan_button.text = "CLUSTER AKTUALISIEREN"
         page.update()
 
-    scan_button = ft.ElevatedButton(
+    scan_button = ft.FilledButton(
         text="CLUSTER AKTUALISIEREN",
         bgcolor="#00ffcc",
-        color="#0d1117",
-        width=450, height=60,
+        width=450,
+        height=60,
         on_click=aktualisiere_status
     )
 
-    page.add(titel, ft.Container(height=10), scan_button, ft.Container(height=20), status_bereich)
+    # Test-Button für Android
+    test_button = ft.TextButton(
+        text="TEST LINK",
+        on_click=lambda e: page.launch_url("https://google.de")
+    )
+
+    page.add(
+        titel,
+        ft.Container(height=10),
+        test_button,
+        ft.Container(height=10),
+        scan_button,
+        ft.Container(height=20),
+        status_bereich
+    )
+
 
 ft.run(main)
