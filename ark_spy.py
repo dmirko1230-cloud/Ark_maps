@@ -1,6 +1,9 @@
 import flet as ft
 import requests
 
+# =========================
+# SERVER + MAPS
+# =========================
 SERVER_LISTE = {
     "THE ISLAND":    {"id": "36953667", "url": "https://asamap.axi92.at/map/c6c6f105-06f1-41de-9f5e-9f38afe18502"},
     "EXTINCTION":    {"id": "36959230", "url": "https://asamap.axi92.at/map/558c1013-0989-40b7-86b4-bbd2b6c529a8"},
@@ -16,7 +19,10 @@ SERVER_LISTE = {
     "LOST COLONY":   {"id": "36959287", "url": "https://asamap.axi92.at/map/f7df5ef9-212b-453d-bc46-e8357a566a36"}
 }
 
-VOTE_LISTE = {
+# =========================
+# ASA VOTES (11x)
+# =========================
+VOTE_ASA = {
     "THE ISLAND": "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49",
     "SE": "https://asa-server.de/server/ruhrpott-survivor-pve-se-crossark-clustert5h5x25-50",
     "CENTER": "https://asa-server.de/server/ruhrpott-survivor-pve-center-crossark-clustert5h5x25-51",
@@ -30,36 +36,47 @@ VOTE_LISTE = {
     "LOST CITY": "https://asa-server.de/server/ruhrpott-survivor-pve-lostcitycrossark-clustert5h5x25-194"
 }
 
+# =========================
+# DEUTSCHE ARK SERVER VOTES
+# =========================
+VOTE_DE = {
+    "THE ISLAND": "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-island-crossark-cluster-t5h5x2-5.46322/",
+    "RAGNARÖK": "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/"
+}
 
+
+# =========================
+# PLAYER COUNT
+# =========================
 def hole_spieler_anzahl(server_id):
-    url = f"https://api.battlemetrics.com/servers/{server_id}"
-
     try:
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            return response.json()["data"]["attributes"]["players"]
+        r = requests.get(f"https://api.battlemetrics.com/servers/{server_id}", timeout=5)
+        if r.status_code == 200:
+            return r.json()["data"]["attributes"]["players"]
         return "N/A"
     except:
         return "Fehler"
 
 
+# =========================
+# APP
+# =========================
 def main(page: ft.Page):
-    page.title = "Ruhrpott Survivor - Radar"
+    page.title = "Ruhrpott Survivor PVE Radar"
     page.bgcolor = "#0d1117"
     page.scroll = ft.ScrollMode.AUTO
 
     titel = ft.Text(
-        "🦖 CLUSTER LIVE-RADAR 🦖",
-        size=24,
-        weight=ft.FontWeight.BOLD,
-        color="#00ffcc",
-        text_align=ft.TextAlign.CENTER
+        "🦖 RUHRPOTT SURVIVOR PVE RADAR 🦖",
+    size=24,
+    weight=ft.FontWeight.BOLD,
+    color="#00ffcc"
     )
 
     status_bereich = ft.Column(spacing=5)
 
     # =========================
-    # UPDATE FUNKTION
+    # UPDATE
     # =========================
     def aktualisiere_status(e):
         scan_button.disabled = True
@@ -69,68 +86,51 @@ def main(page: ft.Page):
         status_bereich.controls.clear()
 
         for name, info in SERVER_LISTE.items():
-
             anzahl = hole_spieler_anzahl(info["id"])
 
             if isinstance(anzahl, int):
-                spieler_farbe = "#00ff66" if anzahl > 0 else "#888888"
+                color = "#00ff66" if anzahl > 0 else "#888888"
             else:
-                spieler_farbe = "#ff5555"
+                color = "#ff5555"
 
-            map_klick_bereich = (
-                ft.TextButton(
-                    text="MAP",
-                    on_click=lambda e, u=info["url"]: page.launch_url(u)
-                )
+            map_btn = (
+                ft.TextButton("MAP", on_click=lambda e, u=info["url"]: page.launch_url(u))
                 if info["url"]
-                else ft.Text("-", color="#555555", width=50)
+                else ft.Text("-", color="#555")
             )
 
             status_bereich.controls.append(
-                ft.Row(
-                    [
-                        ft.Text(f"■ {name}:", width=160,
-                                weight=ft.FontWeight.BOLD,
-                                color="#ffaa00"),
-                        ft.Text(f"{anzahl} Spieler",
-                                width=100,
-                                color=spieler_farbe),
-                        map_klick_bereich
-                    ]
-                )
+                ft.Row([
+                    ft.Text(name, width=160, color="#ffaa00"),
+                    ft.Text(f"{anzahl}", width=80, color=color),
+                    map_btn
+                ])
             )
-
-            status_bereich.controls.append(ft.Divider(color="#22333b"))
 
         scan_button.disabled = False
         scan_button.text = "CLUSTER AKTUALISIEREN"
         page.update()
 
-    # =========================
-    # VOTING BEREICH
-    # =========================
-    voting_bereich = ft.Column(spacing=5)
 
-    for name, url in VOTE_LISTE.items():
-        voting_bereich.controls.append(
-            ft.Row(
-                [
-                    ft.Text(f"{name}", width=160, color="#ffffff"),
-                    ft.TextButton(
-                        text="VOTE",
-                        on_click=lambda e, u=url: page.launch_url(u)
-                    )
-                ]
-            )
+    # =========================
+    # VOTING UI BUILDER
+    # =========================
+    def build_vote_section(title, data):
+        section = ft.Column(spacing=5)
+        section.controls.append(
+            ft.Text(title, size=18, color="#00ffcc", weight=ft.FontWeight.BOLD)
         )
-        voting_bereich.controls.append(ft.Divider(color="#22333b"))
 
-    voting_section = ft.Column(
-        [
-            ft.Text("🏆 SERVER VOTING", size=18, color="#00ffcc", weight=ft.FontWeight.BOLD),
-            voting_bereich
-        ]
-    )
+        for name, url in data.items():
+            section.controls.append(
+                ft.Row([
+                    ft.Text(name, width=160, color="#ffffff"),
+                    ft.TextButton("VOTE", on_click=lambda e, u=url: page.launch_url(u))
+                ])
+            )
+
+        return section
+
 
     # =========================
     # BUTTON
@@ -143,6 +143,14 @@ def main(page: ft.Page):
         on_click=aktualisiere_status
     )
 
+
+    # =========================
+    # BUILD VOTE SECTIONS
+    # =========================
+    vote_asa_section = build_vote_section("🏆 ASA SERVER VOTING", VOTE_ASA)
+    vote_de_section = build_vote_section("🇩🇪 DEUTSCHE ARK SERVER VOTING", VOTE_DE)
+
+
     # =========================
     # UI
     # =========================
@@ -153,9 +161,10 @@ def main(page: ft.Page):
         ft.Container(height=20),
         status_bereich,
         ft.Container(height=30),
-        voting_section
+        vote_asa_section,
+        ft.Container(height=20),
+        vote_de_section
     )
 
 
-if __name__ == "__main__":
-    ft.app(target=main)
+ft.app(target=main)
