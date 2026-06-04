@@ -61,16 +61,17 @@ def build_vote_block(page, title, links):
         gespeichert = page.client_storage.get(storage_key)
 
         status_text = ft.Text(
-            "✓ erledigt" if gespeichert == heute() else "",
-            width=100,
+            "✓" if gespeichert == heute() else "",
+            width=45,
             color="#00ff66",
             weight=ft.FontWeight.BOLD,
+            size=24,
             text_align=ft.TextAlign.CENTER
         )
 
         def vote_click(e, vote_url=url, key=storage_key, status=status_text):
             page.client_storage.set(key, heute())
-            status.value = "✓ erledigt"
+            status.value = "✓"
             page.update()
             page.launch_url(vote_url)
 
@@ -80,7 +81,7 @@ def build_vote_block(page, title, links):
                     ft.Text(name, width=150, color="#ffffff"),
                     ft.TextButton(
                         text="VOTE",
-                        width=100,
+                        width=80,
                         on_click=vote_click
                     ),
                     status_text
