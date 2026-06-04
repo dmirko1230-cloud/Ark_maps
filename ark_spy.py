@@ -61,25 +61,31 @@ def build_vote_block(page, title, links):
         gespeichert = page.client_storage.get(storage_key)
 
         status_text = ft.Text(
-            "✓ heute" if gespeichert == heute() else "",
-            width=80,
+            "✓ erledigt" if gespeichert == heute() else "",
+            width=100,
             color="#00ff66",
-            weight=ft.FontWeight.BOLD
+            weight=ft.FontWeight.BOLD,
+            text_align=ft.TextAlign.CENTER
         )
 
         def vote_click(e, vote_url=url, key=storage_key, status=status_text):
             page.client_storage.set(key, heute())
-            status.value = "✓ heute"
+            status.value = "✓ erledigt"
             page.update()
             page.launch_url(vote_url)
 
         rows.append(
             ft.Row(
                 controls=[
-                    ft.Text(name, expand=1, color="#ffffff"),
-                    ft.TextButton(text="VOTE", on_click=vote_click),
+                    ft.Text(name, width=150, color="#ffffff"),
+                    ft.TextButton(
+                        text="VOTE",
+                        width=100,
+                        on_click=vote_click
+                    ),
                     status_text
-                ]
+                ],
+                alignment=ft.MainAxisAlignment.START
             )
         )
 
@@ -101,15 +107,25 @@ def main(page: ft.Page):
     page.bgcolor = "#0d1117"
     page.scroll = ft.ScrollMode.AUTO
 
-    # top=30 schiebt den Titel weiter unter die Handy-Statusleiste
-    page.padding = ft.padding.only(bottom=90, left=10, right=10, top=30)
+    page.padding = ft.padding.only(
+        top=45,
+        bottom=90,
+        left=10,
+        right=10
+    )
 
-    titel = ft.Text(
-        "🦖 RUHRPOTT SURVIVOR 🦖",
-        size=22,
-        weight=ft.FontWeight.BOLD,
-        color="#00ffcc",
-        no_wrap=True
+    titel = ft.Row(
+        controls=[
+            ft.Text(
+                "🦖 RUHRPOTT SURVIVOR 🦖",
+                size=22,
+                weight=ft.FontWeight.BOLD,
+                color="#00ffcc",
+                no_wrap=True,
+                text_align=ft.TextAlign.CENTER
+            )
+        ],
+        alignment=ft.MainAxisAlignment.CENTER
     )
 
     status_bereich = ft.Column(spacing=5)
@@ -132,19 +148,21 @@ def main(page: ft.Page):
             map_btn = (
                 ft.TextButton(
                     text="MAP",
+                    width=100,
                     on_click=lambda e, u=info["url"]: page.launch_url(u)
                 )
                 if info["url"]
-                else ft.Text("-", color="#555555")
+                else ft.Text("-", width=100, color="#555555", text_align=ft.TextAlign.CENTER)
             )
 
             status_bereich.controls.append(
                 ft.Row(
                     controls=[
                         ft.Text(f"■ {name}:", width=150, color="#ffaa00", weight=ft.FontWeight.BOLD),
-                        ft.Text(f"{anzahl} Spieler", width=100, color=farbe),
+                        ft.Text(f"{anzahl} Spieler", width=100, color=farbe, text_align=ft.TextAlign.CENTER),
                         map_btn
-                    ]
+                    ],
+                    alignment=ft.MainAxisAlignment.START
                 )
             )
 
