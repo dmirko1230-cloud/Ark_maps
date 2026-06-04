@@ -1,10 +1,8 @@
 import flet as ft
 import requests
+from datetime import datetime
 
 
-# -----------------------------
-# SERVER LISTE
-# -----------------------------
 SERVER_LISTE = {
     "THE ISLAND": {"id": "36953667", "url": "https://asamap.axi92.at/map/c6c6f105-06f1-41de-9f5e-9f38afe18502"},
     "EXTINCTION": {"id": "36959230", "url": "https://asamap.axi92.at/map/558c1013-0989-40b7-86b4-bbd2b6c529a8"},
@@ -21,9 +19,6 @@ SERVER_LISTE = {
 }
 
 
-# -----------------------------
-# VOTE LINKS
-# -----------------------------
 VOTE_ASA = [
     ("Island", "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49"),
     ("SE", "https://asa-server.de/server/ruhrpott-survivor-pve-se-crossark-clustert5h5x25-50"),
@@ -44,9 +39,10 @@ VOTE_DE = [
 ]
 
 
-# -----------------------------
-# API
-# -----------------------------
+def heute():
+    return datetime.now().strftime("%Y-%m-%d")
+
+
 def hole_spieler_anzahl(server_id):
     try:
         r = requests.get(f"https://api.battlemetrics.com/servers/{server_id}", timeout=5)
@@ -57,10 +53,36 @@ def hole_spieler_anzahl(server_id):
     return "Fehler"
 
 
-# -----------------------------
-# VOTE UI BLOCK
-# -----------------------------
 def build_vote_block(page, title, links):
+    rows = []
+
+    for name, url in links:
+        storage_key = f"vote_{title}_{name}"
+        gespeichert = page.client_storage.get(storage_key)
+
+        status_text = ft.Text(
+            "✓ heute" if gespeichert == heute() else "",
+            width=80,
+            color="#00ff66",
+            weight=ft.FontWeight.BOLD
+        )
+
+        def vote_click(e, vote_url=url, key=storage_key, status=status_text):
+            page.client_storage.set(key, heute())
+            status.value = "✓ heute"
+            page.update()
+            page.launch_url(vote_url)
+
+        rows.append(
+            ft.Row(
+                controls=[
+                    ft.Text(name, expand=1, color="#ffffff"),
+                    ft.TextButton(text="VOTE", on_click=vote_click),
+                    status_text
+                ]
+            )
+        )
+
     return ft.Container(
         padding=10,
         bgcolor="#111827",
@@ -68,33 +90,19 @@ def build_vote_block(page, title, links):
         content=ft.Column(
             controls=[
                 ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
-
-                *[
-                    ft.Row(
-                        controls=[
-                            ft.Text(name, expand=1, color="#ffffff"),
-                            ft.TextButton(
-                                text="VOTE",
-                                on_click=lambda e, u=url: page.launch_url(u)
-                            )
-                        ]
-                    )
-                    for name, url in links
-                ]
+                *rows
             ]
         )
     )
 
 
-# -----------------------------
-# MAIN APP
-# -----------------------------
 def main(page: ft.Page):
-
     page.title = "Ruhrpott Survivor PVE Radar"
     page.bgcolor = "#0d1117"
     page.scroll = ft.ScrollMode.AUTO
-    page.padding = ft.padding.only(bottom=90, left=10, right=10, top=10)
+
+    # top=30 schiebt den Titel weiter unter die Handy-Statusleiste
+    page.padding = ft.padding.only(bottom=90, left=10, right=10, top=30)
 
     titel = ft.Text(
         "🦖 RUHRPOTT SURVIVOR 🦖",
@@ -114,7 +122,6 @@ def main(page: ft.Page):
         status_bereich.controls.clear()
 
         for name, info in SERVER_LISTE.items():
-
             anzahl = hole_spieler_anzahl(info["id"])
 
             if isinstance(anzahl, int):
