@@ -1,6 +1,8 @@
 import flet as ft
 import requests
 from datetime import datetime
+import calendar
+import json
 
 
 SERVER_LISTE = {
@@ -20,27 +22,40 @@ SERVER_LISTE = {
 
 
 VOTE_ASA = [
-    ("Island", "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49"),
-    ("SE", "https://asa-server.de/server/ruhrpott-survivor-pve-se-crossark-clustert5h5x25-50"),
-    ("Center", "https://asa-server.de/server/ruhrpott-survivor-pve-center-crossark-clustert5h5x25-51"),
-    ("Ragnarok", "https://asa-server.de/server/ruhrpott-survivor-pve-ragnarok-crossark-clustert5h5x25-52"),
-    ("Aberration", "https://asa-server.de/server/ruhrpott-survivor-pve-aberration-crossark-clustert5h5x25-57"),
-    ("Extinction", "https://asa-server.de/server/ruhrpott-survivor-pve-extinction-crossark-clustert5h5x25-112"),
-    ("Astraeos", "https://asa-server.de/server/ruhrpott-survivor-pve-astraeos-crossark-clustert5h5x25-113"),
-    ("Svartalfheim", "https://asa-server.de/server/ruhrpott-survivor-pve-svartalfheim-crossark-clustert5h5x25-132"),
-    ("Valguero", "https://asa-server.de/server/ruhrpott-survivor-pve-valguero-crossark-clustert5h5x25-170"),
-    ("Lost Colony", "https://asa-server.de/server/ruhrpott-survivor-pve-lostcolony-crossark-clustert5h5x25-193"),
-    ("Lost City", "https://asa-server.de/server/ruhrpott-survivor-pve-lostcitycrossark-clustert5h5x25-194"),
+    ("Island", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49"),
+    ("SE", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-se-crossark-clustert5h5x25-50"),
+    ("Center", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-center-crossark-clustert5h5x25-51"),
+    ("Ragnarok", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-ragnarok-crossark-clustert5h5x25-52"),
+    ("Aberration", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-aberration-crossark-clustert5h5x25-57"),
+    ("Extinction", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-extinction-crossark-clustert5h5x25-112"),
+    ("Astraeos", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-astraeos-crossark-clustert5h5x25-113"),
+    ("Svartalfheim", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-svartalfheim-crossark-clustert5h5x25-132"),
+    ("Valguero", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-valguero-crossark-clustert5h5x25-170"),
+    ("Lost Colony", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-lostcolony-crossark-clustert5h5x25-193"),
+    ("Lost City", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-lostcitycrossark-clustert5h5x25-194"),
 ]
 
 VOTE_DE = [
-    ("Island (DE)", "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-island-crossark-cluster-t5h5x2-5.46322/"),
-    ("Ragnarok (DE)", "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/")
+    ("Island (DE)", 550, "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-island-crossark-cluster-t5h5x2-5.46322/"),
+    ("Ragnarok (DE)", 550, "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/")
 ]
 
 
 def heute():
     return datetime.now().strftime("%Y-%m-%d")
+
+
+def aktueller_monat():
+    return datetime.now().strftime("%Y-%m")
+
+
+def tage_im_monat():
+    now = datetime.now()
+    return calendar.monthrange(now.year, now.month)[1]
+
+
+def format_punkte(zahl):
+    return f"{zahl:,}".replace(",", ".")
 
 
 def hole_spieler_anzahl(server_id):
@@ -65,40 +80,72 @@ def main(page: ft.Page):
     ]
 
     gesamt_votes = sum(len(links) for _, links in alle_votes)
+    max_punkte_tag = sum(punkte for _, links in alle_votes for _, punkte, _ in links)
+    max_punkte_monat = max_punkte_tag * tage_im_monat()
 
-    vote_counter_text = ft.Text(
+    statistik_text = ft.Text(
         "",
         color="#00ffcc",
         weight=ft.FontWeight.BOLD,
-        size=16,
+        size=15,
         text_align=ft.TextAlign.CENTER
     )
 
     def vote_key(title, name):
         return f"vote_{title}_{name}"
 
-    def zaehle_heutige_votes():
+    def month_storage_key():
+        return f"vote_month_{aktueller_monat()}"
+
+    def load_month_data():
+        raw = page.client_storage.get(month_storage_key())
+        if not raw:
+            return {}
+        try:
+            return json.loads(raw)
+        except:
+            return {}
+
+    def save_month_data(data):
+        page.client_storage.set(month_storage_key(), json.dumps(data))
+
+    def zaehle_heute():
         count = 0
+        punkte = 0
+
         for title, links in alle_votes:
-            for name, _ in links:
+            for name, wert, _ in links:
                 if page.client_storage.get(vote_key(title, name)) == heute():
                     count += 1
-        return count
+                    punkte += wert
 
-    def update_vote_counter():
-        count = zaehle_heutige_votes()
-        vote_counter_text.value = f"📊 Heute gedrückte Vote-Seiten: {count} / {gesamt_votes}"
+        return count, punkte
+
+    def update_statistik():
+        count, punkte_heute = zaehle_heute()
+
+        month_data = load_month_data()
+        month_data[heute()] = punkte_heute
+        save_month_data(month_data)
+
+        punkte_monat = sum(month_data.values())
+
+        statistik_text.value = (
+            f"📊 Heute gedrückte Vote-Seiten: {count} / {gesamt_votes}\n"
+            f"🪙 Heute mögliche Punkte: {format_punkte(punkte_heute)} / {format_punkte(max_punkte_tag)}\n"
+            f"🪙 Monat mögliche Punkte: {format_punkte(punkte_monat)} / {format_punkte(max_punkte_monat)}"
+        )
 
     def build_vote_block(title, links):
         rows = []
 
-        for name, url in links:
+        for name, punkte, url in links:
             storage_key = vote_key(title, name)
             gespeichert = page.client_storage.get(storage_key)
 
             status_text = ft.Text(
                 "✓" if gespeichert == heute() else "",
-                width=45,
+                width=35,
                 color="#00ff66",
                 weight=ft.FontWeight.BOLD,
                 size=24,
@@ -108,15 +155,16 @@ def main(page: ft.Page):
             def vote_click(e, vote_url=url, key=storage_key, status=status_text):
                 page.client_storage.set(key, heute())
                 status.value = "✓"
-                update_vote_counter()
+                update_statistik()
                 page.update()
                 page.launch_url(vote_url)
 
             rows.append(
                 ft.Row(
                     controls=[
-                        ft.Text(name, width=150, color="#ffffff"),
-                        ft.TextButton(text="VOTE", width=80, on_click=vote_click),
+                        ft.Text(name, width=120, color="#ffffff"),
+                        ft.Text(f"{punkte} 🪙", width=70, color="#c0c0c0", text_align=ft.TextAlign.CENTER),
+                        ft.TextButton(text="VOTE", width=75, on_click=vote_click),
                         status_text
                     ],
                     alignment=ft.MainAxisAlignment.START
@@ -205,14 +253,14 @@ def main(page: ft.Page):
     vote_asa = build_vote_block("🔥 ASA SERVER VOTES", VOTE_ASA)
     vote_de = build_vote_block("🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE)
 
-    update_vote_counter()
+    update_statistik()
 
-    vote_counter_box = ft.Container(
+    statistik_box = ft.Container(
         padding=10,
         bgcolor="#111827",
         border_radius=10,
         alignment=ft.alignment.center,
-        content=vote_counter_text
+        content=statistik_text
     )
 
     page.add(
@@ -226,7 +274,7 @@ def main(page: ft.Page):
         ft.Container(height=10),
         vote_de,
         ft.Container(height=15),
-        vote_counter_box
+        statistik_box
     )
 
 
