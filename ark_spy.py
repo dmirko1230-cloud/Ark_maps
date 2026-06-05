@@ -53,67 +53,87 @@ def hole_spieler_anzahl(server_id):
     return "Fehler"
 
 
-def build_vote_block(page, title, links):
-    rows = []
-
-    for name, url in links:
-        storage_key = f"vote_{title}_{name}"
-        gespeichert = page.client_storage.get(storage_key)
-
-        status_text = ft.Text(
-            "✓" if gespeichert == heute() else "",
-            width=45,
-            color="#00ff66",
-            weight=ft.FontWeight.BOLD,
-            size=24,
-            text_align=ft.TextAlign.CENTER
-        )
-
-        def vote_click(e, vote_url=url, key=storage_key, status=status_text):
-            page.client_storage.set(key, heute())
-            status.value = "✓"
-            page.update()
-            page.launch_url(vote_url)
-
-        rows.append(
-            ft.Row(
-                controls=[
-                    ft.Text(name, width=150, color="#ffffff"),
-                    ft.TextButton(
-                        text="VOTE",
-                        width=80,
-                        on_click=vote_click
-                    ),
-                    status_text
-                ],
-                alignment=ft.MainAxisAlignment.START
-            )
-        )
-
-    return ft.Container(
-        padding=10,
-        bgcolor="#111827",
-        border_radius=10,
-        content=ft.Column(
-            controls=[
-                ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
-                *rows
-            ]
-        )
-    )
-
-
 def main(page: ft.Page):
     page.title = "Ruhrpott Survivor PVE Radar"
     page.bgcolor = "#0d1117"
     page.scroll = ft.ScrollMode.AUTO
+    page.padding = ft.padding.only(top=45, bottom=90, left=10, right=10)
 
-    page.padding = ft.padding.only(
-        top=45,
-        bottom=90,
-        left=10,
-        right=10
+    alle_votes = [
+        ("🔥 ASA SERVER VOTES", VOTE_ASA),
+        ("🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE),
+    ]
+
+    gesamt_votes = sum(len(links) for _, links in alle_votes)
+
+    vote_counter_text = ft.Text(
+        "",
+        color="#00ffcc",
+        weight=ft.FontWeight.BOLD,
+        size=16,
+        text_align=ft.TextAlign.CENTER
     )
+
+    def vote_key(title, name):
+        return f"vote_{title}_{name}"
+
+    def zaehle_heutige_votes():
+        count = 0
+        for title, links in alle_votes:
+            for name, _ in links:
+                if page.client_storage.get(vote_key(title, name)) == heute():
+                    count += 1
+        return count
+
+    def update_vote_counter():
+        count = zaehle_heutige_votes()
+        vote_counter_text.value = f"📊 Heute gedrückte Vote-Seiten: {count} / {gesamt_votes}"
+
+    def build_vote_block(title, links):
+        rows = []
+
+        for name, url in links:
+            storage_key = vote_key(title, name)
+            gespeichert = page.client_storage.get(storage_key)
+
+            status_text = ft.Text(
+                "✓" if gespeichert == heute() else "",
+                width=45,
+                color="#00ff66",
+                weight=ft.FontWeight.BOLD,
+                size=24,
+                text_align=ft.TextAlign.CENTER
+            )
+
+            def vote_click(e, vote_url=url, key=storage_key, status=status_text):
+                page.client_storage.set(key, heute())
+                status.value = "✓"
+                update_vote_counter()
+                page.update()
+                page.launch_url(vote_url)
+
+            rows.append(
+                ft.Row(
+                    controls=[
+                        ft.Text(name, width=150, color="#ffffff"),
+                        ft.TextButton(text="VOTE", width=80, on_click=vote_click),
+                        status_text
+                    ],
+                    alignment=ft.MainAxisAlignment.START
+                )
+            )
+
+        return ft.Container(
+            padding=10,
+            bgcolor="#111827",
+            border_radius=10,
+            content=ft.Column(
+                controls=[
+                    ft.Text(title, color="#00ffcc", weight=ft.FontWeight.BOLD),
+                    *rows
+                ]
+            )
+        )
 
     titel = ft.Row(
         controls=[
@@ -182,8 +202,18 @@ def main(page: ft.Page):
         on_click=aktualisiere_status
     )
 
-    vote_asa = build_vote_block(page, "🔥 ASA SERVER VOTES", VOTE_ASA)
-    vote_de = build_vote_block(page, "🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE)
+    vote_asa = build_vote_block("🔥 ASA SERVER VOTES", VOTE_ASA)
+    vote_de = build_vote_block("🇩🇪 DEUTSCHE ARKSERVER VOTES", VOTE_DE)
+
+    update_vote_counter()
+
+    vote_counter_box = ft.Container(
+        padding=10,
+        bgcolor="#111827",
+        border_radius=10,
+        alignment=ft.alignment.center,
+        content=vote_counter_text
+    )
 
     page.add(
         titel,
@@ -194,7 +224,9 @@ def main(page: ft.Page):
         ft.Container(height=20),
         vote_asa,
         ft.Container(height=10),
-        vote_de
+        vote_de,
+        ft.Container(height=15),
+        vote_counter_box
     )
 
 
