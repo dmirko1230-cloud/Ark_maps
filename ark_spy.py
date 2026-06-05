@@ -435,27 +435,53 @@ def main(page: ft.Page):
         text="CLUSTER AKTUALISIEREN",
         bgcolor="#00ffcc",
         color="#0d1117",
-        height=48,
+        width=360,
+        height=55,
         on_click=aktualisiere_status,
     )
 
     update_stats()
 
     page.add(
-        ft.Text(
-            "🦖 RUHRPOTT SURVIVOR 🦖",
-            size=21,
-            weight=ft.FontWeight.BOLD,
-            color="#00ffcc",
-            text_align=ft.TextAlign.CENTER,
+        ft.Container(
+            width=page.width,
+            alignment=ft.alignment.center,
+            content=ft.Text(
+                "🦖 RUHRPOTT SURVIVOR 🦖",
+                size=21,
+                weight=ft.FontWeight.BOLD,
+                color="#00ffcc",
+                text_align=ft.TextAlign.CENTER,
+            ),
         ),
-        ft.Text(
-            "Vote Radar",
-            size=12,
-            color="#888888",
-            text_align=ft.TextAlign.CENTER,
+        ft.Container(
+            width=page.width,
+            alignment=ft.alignment.center,
+            content=ft.Text(
+                "Vote Radar",
+                size=12,
+                color="#888888",
+                text_align=ft.TextAlign.CENTER,
+            ),
         ),
-        ft.Container(height=8),
+        ft.Container(height=12),
+
+        ft.Container(
+            width=page.width,
+            alignment=ft.alignment.center,
+            content=scan_button,
+        ),
+
+        ft.Container(height=12),
+        status_bereich,
+
+        ft.Container(height=15),
+        build_vote_block("🔥 ASA Votes", VOTE_ASA),
+
+        ft.Container(height=10),
+        build_vote_block("🇩🇪 Deutsche Arkserver", VOTE_DE),
+
+        ft.Container(height=18),
         ft.Container(
             padding=10,
             bgcolor="#111827",
@@ -472,6 +498,7 @@ def main(page: ft.Page):
                 spacing=6,
             ),
         ),
+
         ft.Container(height=10),
         ft.Container(
             padding=10,
@@ -488,17 +515,8 @@ def main(page: ft.Page):
                 spacing=5,
             ),
         ),
-        ft.Container(height=12),
-        scan_button,
-        ft.Container(height=10),
-        status_bereich,
-        ft.Container(height=15),
-        build_vote_block("🔥 ASA Votes", VOTE_ASA),
-        ft.Container(height=10),
-        build_vote_block("🇩🇪 Deutsche Arkserver", VOTE_DE),
     )
 
 
 if __name__ == "__main__":
     ft.app(target=main)
-
