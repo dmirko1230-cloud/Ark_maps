@@ -163,11 +163,13 @@ def main(page: ft.Page):
             controls=[
                 ft.Text(
                     "Dieses Vote Radar ist nur dein persönlicher Vote-Tracker.",
-                    color="#ffffff",
+                    color="#ff4444",
+                    weight=ft.FontWeight.BOLD,
                 ),
                 ft.Text(
                     "Haken, Punkte und Streaks werden nur lokal auf deinem Gerät gespeichert.",
-                    color="#ffffff",
+                    color="#ff4444",
+                    weight=ft.FontWeight.BOLD,
                 ),
                 ft.Text(
                     "Ein Klick in dieser App bedeutet NICHT automatisch, dass dein Vote auf der Webseite gezählt wurde.",
@@ -176,7 +178,8 @@ def main(page: ft.Page):
                 ),
                 ft.Text(
                     "Bitte prüfe immer selbst, ob dein Vote auf der jeweiligen Vote-Seite erfolgreich abgeschlossen wurde.",
-                    color="#ffffff",
+                    color="#ff4444",
+                    weight=ft.FontWeight.BOLD,
                 ),
                 ft.Text(
                     "Nur echte Votes auf den offiziellen Vote-Seiten zählen für Ruhrpott Survivor.",
@@ -286,20 +289,20 @@ def main(page: ft.Page):
         return streak
 
     def badge_for_streak(streak):
-        if streak >= 1095:
+        if streak >= 1000:
             return "🔥 Ruhrpott Gott"
-        elif streak >= 730:
+        elif streak >= 500:
             return "👑 Mythos"
-        elif streak >= 365:
+        elif streak >= 250:
             return "💎 Legende"
-        elif streak >= 180:
+        elif streak >= 145:
             return "🏆 Gold"
         elif streak >= 90:
             return "🥈 Silber"
         elif streak >= 45:
-            return "🟠 Kupfer"
-        elif streak >= 30:
             return "🥉 Bronze"
+        elif streak >= 21:
+            return "🟠 Kupfer"
         elif streak >= 7:
             return "🔥 Aktiv"
         return "🌱 Vote-Neuling"
@@ -307,13 +310,13 @@ def main(page: ft.Page):
     def naechster_badge(streak):
         ziele = [
             (7, "🔥 Aktiv"),
-            (30, "🥉 Bronze"),
-            (45, "🟠 Kupfer"),
+            (21, "🟠 Kupfer"),
+            (45, "🥉 Bronze"),
             (90, "🥈 Silber"),
-            (180, "🏆 Gold"),
-            (365, "💎 Legende"),
-            (730, "👑 Mythos"),
-            (1095, "🔥 Ruhrpott Gott"),
+            (145, "🏆 Gold"),
+            (250, "💎 Legende"),
+            (500, "👑 Mythos"),
+            (1000, "🔥 Ruhrpott Gott"),
         ]
 
         for ziel, name in ziele:
@@ -593,4 +596,3 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
     ft.app(target=main)
-
