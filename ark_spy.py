@@ -17,6 +17,7 @@ import json
 # - Monatspunkte
 # - vollständige Vote-Tage
 # - globaler Streak über Monats-/Jahreswechsel
+# - offener Streak ohne Enddatum
 # - Badges bis "Ruhrpott Gott"
 # ============================================================
 
@@ -62,9 +63,6 @@ VOTE_DE = [
 STREAK_KEY = "rs_global_streak"
 LAST_FULL_DAY_KEY = "rs_last_full_vote_day"
 
-# Optionaler Projektzeitraum.
-# Streak läuft nur bis zu diesem Datum weiter.
-PROJECT_END_DATE = "2028-12-31"
 
 
 def heute():
@@ -87,19 +85,6 @@ def tage_im_monat():
 def format_punkte(zahl):
     return f"{zahl:,}".replace(",", ".")
 
-
-def parse_date(date_text):
-    return datetime.strptime(date_text, "%Y-%m-%d").date()
-
-
-def tage_bis_projektende():
-    ende = parse_date(PROJECT_END_DATE)
-    heute_date = parse_date(heute())
-    return max((ende - heute_date).days, 0)
-
-
-def ist_nach_projektende():
-    return parse_date(heute()) > parse_date(PROJECT_END_DATE)
 
 
 def hole_spieler_anzahl(server_id):
@@ -237,8 +222,6 @@ def main(page: ft.Page):
         if not is_full_today:
             return streak
 
-        if ist_nach_projektende():
-            return streak
 
         if letzter_tag == heute():
             return streak
@@ -264,16 +247,19 @@ def main(page: ft.Page):
             return "🏆 Gold"
         elif streak >= 90:
             return "🥈 Silber"
+        elif streak >= 45:
+            return "🟠 Kupfer"
         elif streak >= 30:
             return "🥉 Bronze"
         elif streak >= 7:
             return "🔥 Aktiv"
-        return "🌱 Anfänger"
+        return "🌱 Vote-Neuling"
 
     def naechster_badge(streak):
         ziele = [
             (7, "🔥 Aktiv"),
             (30, "🥉 Bronze"),
+            (45, "🟠 Kupfer"),
             (90, "🥈 Silber"),
             (180, "🏆 Gold"),
             (365, "💎 Legende"),
@@ -347,14 +333,10 @@ def main(page: ft.Page):
             balken = progress_bar(streak, ziel)
             progress_text.value = (
                 f"Nächster Rang: {ziel_name} bei {ziel} Tagen\n"
-                f"{balken} {streak}/{ziel}\n"
-                f"Projekt läuft bis {PROJECT_END_DATE} · noch {tage_bis_projektende()} Tage"
+                f"{balken} {streak}/{ziel}"
             )
         else:
-            progress_text.value = (
-                f"Maximalrang erreicht\n"
-                f"Projekt läuft bis {PROJECT_END_DATE} · noch {tage_bis_projektende()} Tage"
-            )
+            progress_text.value = "Maximalrang erreicht"
 
         kalender_text.value = baue_kalender(data)
 
@@ -385,7 +367,7 @@ def main(page: ft.Page):
                 ft.Row(
                     controls=[
                         ft.Text(name, width=115, color="#ffffff", size=13),
-                        ft.Text(f"{punkte}", width=45, color="#c0c0c0", size=13, text_align=ft.TextAlign.CENTER),
+                        ft.Text(f"{punkte} 🪙", width=65, color="#c0c0c0", size=13, text_align=ft.TextAlign.CENTER),
                         ft.TextButton(
                             text="VOTE",
                             width=70,
@@ -519,3 +501,4 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
     ft.app(target=main)
+
