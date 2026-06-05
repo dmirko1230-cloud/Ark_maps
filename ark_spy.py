@@ -147,12 +147,10 @@ def main(page: ft.Page):
     status_bereich = ft.Column(spacing=4)
 
     def close_info(e):
-        info_dialog.open = False
-        page.update()
+        page.close(info_dialog)
 
     def show_info(e):
-        info_dialog.open = True
-        page.update()
+        page.open(info_dialog)
 
     info_dialog = ft.AlertDialog(
         modal=True,
@@ -164,24 +162,24 @@ def main(page: ft.Page):
         content=ft.Column(
             controls=[
                 ft.Text(
-                    "Diese Übersicht ist nur dein persönlicher Vote-Tracker.",
+                    "Dieses Vote Radar ist nur dein persönlicher Vote-Tracker.",
                     color="#ffffff",
                 ),
                 ft.Text(
-                    "Ein Klick in dieser App garantiert NICHT, dass dein Vote auf der jeweiligen Webseite erfolgreich gezählt wurde.",
+                    "Haken, Punkte und Streaks werden nur lokal auf deinem Gerät gespeichert.",
+                    color="#ffffff",
+                ),
+                ft.Text(
+                    "Ein Klick in dieser App bedeutet NICHT automatisch, dass dein Vote auf der Webseite gezählt wurde.",
                     color="#ff4444",
                     weight=ft.FontWeight.BOLD,
                 ),
                 ft.Text(
-                    "Bitte vergewissere dich immer selbst, dass du auf jeder Vote-Seite tatsächlich gevotet hast.",
+                    "Bitte prüfe immer selbst, ob dein Vote auf der jeweiligen Vote-Seite erfolgreich abgeschlossen wurde.",
                     color="#ffffff",
                 ),
                 ft.Text(
-                    "Der Streak dient lediglich als persönliche Erinnerung und Motivation.",
-                    color="#ffffff",
-                ),
-                ft.Text(
-                    "Nur echte Votes auf den jeweiligen Webseiten zählen für Ruhrpott Survivor.",
+                    "Nur echte Votes auf den offiziellen Vote-Seiten zählen für Ruhrpott Survivor.",
                     color="#ff4444",
                     weight=ft.FontWeight.BOLD,
                 ),
@@ -196,8 +194,6 @@ def main(page: ft.Page):
             )
         ],
     )
-
-    page.dialog = info_dialog
 
     def vote_key(gruppe, name):
         return f"vote_{gruppe}_{name}"
@@ -275,7 +271,6 @@ def main(page: ft.Page):
 
         if not is_full_today:
             return streak
-
 
         if letzter_tag == heute():
             return streak
@@ -598,3 +593,4 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
     ft.app(target=main)
+
