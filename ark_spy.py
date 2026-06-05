@@ -19,6 +19,7 @@ import json
 # - globaler Streak über Monats-/Jahreswechsel
 # - offener Streak ohne Enddatum
 # - Badges bis "Ruhrpott Gott"
+# - Infofenster zum Vote Radar
 # ============================================================
 
 
@@ -144,6 +145,59 @@ def main(page: ft.Page):
     )
 
     status_bereich = ft.Column(spacing=4)
+
+    def close_info(e):
+        info_dialog.open = False
+        page.update()
+
+    def show_info(e):
+        info_dialog.open = True
+        page.update()
+
+    info_dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text(
+            "⚠️ WICHTIGER HINWEIS",
+            color="#ff4444",
+            weight=ft.FontWeight.BOLD,
+        ),
+        content=ft.Column(
+            controls=[
+                ft.Text(
+                    "Diese Übersicht ist nur dein persönlicher Vote-Tracker.",
+                    color="#ffffff",
+                ),
+                ft.Text(
+                    "Ein Klick in dieser App garantiert NICHT, dass dein Vote auf der jeweiligen Webseite erfolgreich gezählt wurde.",
+                    color="#ff4444",
+                    weight=ft.FontWeight.BOLD,
+                ),
+                ft.Text(
+                    "Bitte vergewissere dich immer selbst, dass du auf jeder Vote-Seite tatsächlich gevotet hast.",
+                    color="#ffffff",
+                ),
+                ft.Text(
+                    "Der Streak dient lediglich als persönliche Erinnerung und Motivation.",
+                    color="#ffffff",
+                ),
+                ft.Text(
+                    "Nur echte Votes auf den jeweiligen Webseiten zählen für Ruhrpott Survivor.",
+                    color="#ff4444",
+                    weight=ft.FontWeight.BOLD,
+                ),
+            ],
+            tight=True,
+            spacing=10,
+        ),
+        actions=[
+            ft.TextButton(
+                "Verstanden 👍",
+                on_click=close_info,
+            )
+        ],
+    )
+
+    page.dialog = info_dialog
 
     def vote_key(gruppe, name):
         return f"vote_{gruppe}_{name}"
@@ -476,12 +530,23 @@ def main(page: ft.Page):
             alignment=ft.alignment.center,
             content=ft.Column(
                 controls=[
-                    ft.Text(
-                        "📡 VOTE RADAR",
-                        size=22,
-                        weight=ft.FontWeight.BOLD,
-                        color="#00ffcc",
-                        text_align=ft.TextAlign.CENTER,
+                    ft.Row(
+                        controls=[
+                            ft.Text(
+                                "📡 VOTE RADAR",
+                                size=22,
+                                weight=ft.FontWeight.BOLD,
+                                color="#00ffcc",
+                                text_align=ft.TextAlign.CENTER,
+                            ),
+                            ft.IconButton(
+                                icon=ft.Icons.INFO_OUTLINE,
+                                icon_color="#ff4444",
+                                tooltip="Wichtige Information",
+                                on_click=show_info,
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     ft.Text(
                         "Check your Votes",
