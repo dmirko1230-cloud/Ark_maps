@@ -454,16 +454,6 @@ def main(page: ft.Page):
                 text_align=ft.TextAlign.CENTER,
             ),
         ),
-        ft.Container(
-            width=page.width,
-            alignment=ft.alignment.center,
-            content=ft.Text(
-                "Vote Radar",
-                size=12,
-                color="#888888",
-                text_align=ft.TextAlign.CENTER,
-            ),
-        ),
         ft.Container(height=12),
 
         ft.Container(
@@ -482,6 +472,29 @@ def main(page: ft.Page):
         build_vote_block("🇩🇪 Deutsche Arkserver", VOTE_DE),
 
         ft.Container(height=18),
+        ft.Container(
+            alignment=ft.alignment.center,
+            content=ft.Column(
+                controls=[
+                    ft.Text(
+                        "📡 VOTE RADAR",
+                        size=22,
+                        weight=ft.FontWeight.BOLD,
+                        color="#00ffcc",
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                    ft.Text(
+                        "Check your Votes",
+                        size=12,
+                        color="#888888",
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=0,
+            ),
+        ),
+        ft.Container(height=8),
         ft.Container(
             padding=10,
             bgcolor="#111827",
