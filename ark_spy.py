@@ -5,6 +5,22 @@ import calendar
 import json
 
 
+# ============================================================
+# Ruhrpott Survivor App
+# Kleine Android-taugliche Flet-App
+# Features:
+# - BattleMetrics Spielerzahlen
+# - Map Links
+# - Vote Links
+# - Tageshaken
+# - Vote Counter
+# - Monatspunkte
+# - vollständige Vote-Tage
+# - globaler Streak über Monats-/Jahreswechsel
+# - Badges bis "Ruhrpott Gott"
+# ============================================================
+
+
 SERVER_LISTE = {
     "THE ISLAND": {"id": "36953667", "url": "https://asamap.axi92.at/map/c6c6f105-06f1-41de-9f5e-9f38afe18502"},
     "EXTINCTION": {"id": "36959230", "url": "https://asamap.axi92.at/map/558c1013-0989-40b7-86b4-bbd2b6c529a8"},
@@ -18,6 +34,7 @@ SERVER_LISTE = {
     "LOST CITY": {"id": "36953589", "url": "https://asamap.axi92.at/map/80196515-b882-4819-926c-dc381adcb0dc"},
     "LOST COLONY": {"id": "36959287", "url": "https://asamap.axi92.at/map/f7df5ef9-212b-453d-bc46-e8357a566a36"},
 }
+
 
 VOTE_ASA = [
     ("Island", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-island-crossark-clustert5h5x25-49"),
@@ -33,10 +50,21 @@ VOTE_ASA = [
     ("Lost City", 100, "https://asa-server.de/server/ruhrpott-survivor-pve-lostcitycrossark-clustert5h5x25-194"),
 ]
 
+
 VOTE_DE = [
     ("Island DE", 550, "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-island-crossark-cluster-t5h5x2-5.46322/"),
     ("Ragnarok DE", 550, "https://deutsche-arkserver.de/server/ruhrpott-survivor-pve-ragnarok-crossark-cluster-t5h5x2-5.46373/"),
 ]
+
+
+# Globale Storage Keys.
+# Diese laufen NICHT monatlich aus.
+STREAK_KEY = "rs_global_streak"
+LAST_FULL_DAY_KEY = "rs_last_full_vote_day"
+
+# Optionaler Projektzeitraum.
+# Streak läuft nur bis zu diesem Datum weiter.
+PROJECT_END_DATE = "2028-12-31"
 
 
 def heute():
@@ -60,6 +88,20 @@ def format_punkte(zahl):
     return f"{zahl:,}".replace(",", ".")
 
 
+def parse_date(date_text):
+    return datetime.strptime(date_text, "%Y-%m-%d").date()
+
+
+def tage_bis_projektende():
+    ende = parse_date(PROJECT_END_DATE)
+    heute_date = parse_date(heute())
+    return max((ende - heute_date).days, 0)
+
+
+def ist_nach_projektende():
+    return parse_date(heute()) > parse_date(PROJECT_END_DATE)
+
+
 def hole_spieler_anzahl(server_id):
     try:
         r = requests.get(f"https://api.battlemetrics.com/servers/{server_id}", timeout=5)
@@ -67,6 +109,7 @@ def hole_spieler_anzahl(server_id):
             return r.json()["data"]["attributes"]["players"]
     except Exception:
         pass
+
     return "Fehler"
 
 
@@ -85,9 +128,35 @@ def main(page: ft.Page):
     max_punkte_tag = sum(punkte for _, votes in alle_votes for _, punkte, _ in votes)
     max_punkte_monat = max_punkte_tag * tage_im_monat()
 
-    stats_text = ft.Text("", color="#00ffcc", size=14, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
-    streak_text = ft.Text("", color="#ffaa00", size=14, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
-    kalender_text = ft.Text("", color="#ffffff", size=13, text_align=ft.TextAlign.CENTER)
+    stats_text = ft.Text(
+        "",
+        color="#00ffcc",
+        size=14,
+        weight=ft.FontWeight.BOLD,
+        text_align=ft.TextAlign.CENTER,
+    )
+
+    streak_text = ft.Text(
+        "",
+        color="#ffaa00",
+        size=14,
+        weight=ft.FontWeight.BOLD,
+        text_align=ft.TextAlign.CENTER,
+    )
+
+    kalender_text = ft.Text(
+        "",
+        color="#ffffff",
+        size=13,
+        text_align=ft.TextAlign.CENTER,
+    )
+
+    progress_text = ft.Text(
+        "",
+        color="#c0c0c0",
+        size=12,
+        text_align=ft.TextAlign.CENTER,
+    )
 
     status_bereich = ft.Column(spacing=4)
 
@@ -97,17 +166,30 @@ def main(page: ft.Page):
     def month_key():
         return f"month_{aktueller_monat()}"
 
-    def load_month():
-        raw = page.client_storage.get(month_key())
+    def load_json(key, default):
+        raw = page.client_storage.get(key)
         if not raw:
-            return {}
+            return default
+
         try:
             return json.loads(raw)
         except Exception:
-            return {}
+            return default
+
+    def save_json(key, data):
+        page.client_storage.set(key, json.dumps(data))
+
+    def load_month():
+        return load_json(month_key(), {})
 
     def save_month(data):
-        page.client_storage.set(month_key(), json.dumps(data))
+        save_json(month_key(), data)
+
+    def safe_int_storage(key, default=0):
+        try:
+            return int(page.client_storage.get(key) or default)
+        except Exception:
+            return default
 
     def zaehle_heute():
         count = 0
@@ -129,43 +211,91 @@ def main(page: ft.Page):
         count, punkte = zaehle_heute()
         data = load_month()
 
-        if heute() not in data:
-            data[heute()] = {"punkte": 0, "voll": False}
-
         data[heute()] = {
             "punkte": punkte,
+            "votes": count,
             "voll": count == gesamt_votes,
         }
 
         save_month(data)
         return data
 
-    def berechne_streak(data):
-        streak = 0
-        tag = datetime.now()
+    def update_global_streak(is_full_today):
+        """
+        Der Streak wird global gespeichert.
+        Dadurch bleibt er über Monatswechsel und Jahreswechsel erhalten.
 
-        while True:
-            key = tag.strftime("%Y-%m-%d")
-            if key in data and data[key].get("voll"):
-                streak += 1
-                tag -= timedelta(days=1)
-            else:
-                break
+        Logik:
+        - Heute nicht vollständig: aktuellen Streak nur anzeigen.
+        - Heute schon gespeichert: nichts doppelt zählen.
+        - Letzter voller Tag war gestern: +1.
+        - Letzter voller Tag liegt länger zurück: Neustart bei 1.
+        """
+        streak = safe_int_storage(STREAK_KEY, 0)
+        letzter_tag = page.client_storage.get(LAST_FULL_DAY_KEY)
+
+        if not is_full_today:
+            return streak
+
+        if ist_nach_projektende():
+            return streak
+
+        if letzter_tag == heute():
+            return streak
+
+        if letzter_tag == gestern():
+            streak += 1
+        else:
+            streak = 1
+
+        page.client_storage.set(STREAK_KEY, str(streak))
+        page.client_storage.set(LAST_FULL_DAY_KEY, heute())
 
         return streak
 
     def badge_for_streak(streak):
-        if streak >= 365:
+        if streak >= 1095:
+            return "🔥 Ruhrpott Gott"
+        elif streak >= 730:
+            return "👑 Mythos"
+        elif streak >= 365:
             return "💎 Legende"
-        if streak >= 90:
+        elif streak >= 180:
             return "🏆 Gold"
-        if streak >= 30:
+        elif streak >= 90:
             return "🥈 Silber"
-        if streak >= 7:
+        elif streak >= 30:
             return "🥉 Bronze"
-        if streak >= 1:
+        elif streak >= 7:
             return "🔥 Aktiv"
-        return "Noch kein Streak"
+        return "🌱 Anfänger"
+
+    def naechster_badge(streak):
+        ziele = [
+            (7, "🔥 Aktiv"),
+            (30, "🥉 Bronze"),
+            (90, "🥈 Silber"),
+            (180, "🏆 Gold"),
+            (365, "💎 Legende"),
+            (730, "👑 Mythos"),
+            (1095, "🔥 Ruhrpott Gott"),
+        ]
+
+        for ziel, name in ziele:
+            if streak < ziel:
+                return ziel, name
+
+        return None, "Maximalrang erreicht"
+
+    def progress_bar(aktuell, ziel, breite=18):
+        if ziel <= 0:
+            return "█" * breite
+
+        anteil = min(max(aktuell / ziel, 0), 1)
+        voll = int(anteil * breite)
+        leer = breite - voll
+
+        return "█" * voll + "░" * leer
 
     def baue_kalender(data):
         now = datetime.now()
@@ -191,7 +321,10 @@ def main(page: ft.Page):
 
         punkte_monat = sum(tag.get("punkte", 0) for tag in data.values())
         volle_tage = sum(1 for tag in data.values() if tag.get("voll"))
-        streak = berechne_streak(data)
+
+        is_full = count == gesamt_votes
+        streak = update_global_streak(is_full)
+        badge = badge_for_streak(streak)
 
         stats_text.value = (
             f"Votes heute: {count} / {gesamt_votes}\n"
@@ -200,10 +333,28 @@ def main(page: ft.Page):
             f"Vollständige Vote-Tage: {volle_tage} / {tage_im_monat()}"
         )
 
-        streak_text.value = f"🔥 Streak: {streak} Tage · {badge_for_streak(streak)}"
+        streak_text.value = (
+            f"🔥 Streak: {streak} Tage\n"
+            f"{badge}"
+        )
 
-        if ist_heute_voll():
+        if is_full:
             streak_text.value += "\n⭐ Heute vollständig gevotet!"
+
+        ziel, ziel_name = naechster_badge(streak)
+
+        if ziel:
+            balken = progress_bar(streak, ziel)
+            progress_text.value = (
+                f"Nächster Rang: {ziel_name} bei {ziel} Tagen\n"
+                f"{balken} {streak}/{ziel}\n"
+                f"Projekt läuft bis {PROJECT_END_DATE} · noch {tage_bis_projektende()} Tage"
+            )
+        else:
+            progress_text.value = (
+                f"Maximalrang erreicht\n"
+                f"Projekt läuft bis {PROJECT_END_DATE} · noch {tage_bis_projektende()} Tage"
+            )
 
         kalender_text.value = baue_kalender(data)
 
@@ -316,6 +467,12 @@ def main(page: ft.Page):
             color="#00ffcc",
             text_align=ft.TextAlign.CENTER,
         ),
+        ft.Text(
+            "Vote Radar",
+            size=12,
+            color="#888888",
+            text_align=ft.TextAlign.CENTER,
+        ),
         ft.Container(height=8),
         ft.Container(
             padding=10,
@@ -323,8 +480,14 @@ def main(page: ft.Page):
             border_radius=10,
             alignment=ft.alignment.center,
             content=ft.Column(
-                controls=[stats_text, streak_text],
+                controls=[
+                    stats_text,
+                    ft.Divider(color="#22333b"),
+                    streak_text,
+                    progress_text,
+                ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=6,
             ),
         ),
         ft.Container(height=10),
@@ -340,6 +503,7 @@ def main(page: ft.Page):
                     ft.Text("✅ voll · 🟡 teilweise · ⬛ offen", color="#888888", size=11),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=5,
             ),
         ),
         ft.Container(height=12),
